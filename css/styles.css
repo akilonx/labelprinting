@@ -1,0 +1,25 @@
+.spacer-5 {
+    margin-top: 5px;
+    clear: both;
+}
+
+.spacer-10 {
+    margin-top: 10px;
+    clear: both;
+}
+
+.spacer-15 {
+    margin-top: 15px;
+    clear: both;
+}
+
+.spacer-20 {
+    margin-top: 20px;
+    clear: both;
+}
+
+.form-control-inline {
+    min-width: 0;
+    width: auto;
+    display: inline;
+}
