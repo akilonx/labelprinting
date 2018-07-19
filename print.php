@@ -90,12 +90,12 @@ function addSpace($a, $pos){
                         'color' => array(0, 0, 0)
                     )
                 );
-            $pdf->writeHTMLCell(106, 74.2, '', '', '', $border, 1, 1, true, 'J', true);
+            $pdf->writeHTMLCell(106, 74.10, '', '', '', $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
 
         } else {
             $pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
-            $pdf->writeHTMLCell(106, 74.2, '', $y, '', $border = 0, 0, 1, true, 'J', true);
+            $pdf->writeHTMLCell(106, 74.10, '', $y, '', $border = 0, 0, 1, true, 'J', true);
         }
 
     }
@@ -103,7 +103,7 @@ function addSpace($a, $pos){
 
 
 //Program start        
-$sql = "SELECT * FROM orders where address_with_separator is not null and qrcode is not null limit 13";
+$sql = "SELECT * FROM orders where address is not null and qrcode is not null limit 25";
 $result = $conn->query($sql);
 $resultIndex = $result->num_rows;
 
@@ -164,12 +164,12 @@ if ($result->num_rows > 0) {
                         'color' => array(0, 0, 0)
                     )
                 );
-            $pdf->writeHTMLCell(106, 74.2, '', '', $html, $border, 1, 1, true, 'J', true);
+            $pdf->writeHTMLCell(106, 74.10, '', '', $html, $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
 
         } else {
             if ($i > 2) $pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
-            $pdf->writeHTMLCell(106, 74.2, '', $y, $html, $border = 0, 0, 1, true, 'J', true);
+            $pdf->writeHTMLCell(106, 74.10, '', $y, $html, $border = 0, 0, 1, true, 'J', true);
         }
 
         if ($i == $itemLimit) {
