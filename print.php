@@ -94,13 +94,6 @@ function addSpace($a, $pos){
             $pdf->Ln(0);
 
         } else {
-            /* $border = array(
-                'B' => array(
-                    'width' => 1, // careful, this is not px but the unit you declared
-                    'dash'  => 10,
-                    'color' => array(0, 0, 0)
-                )
-            ); */
             $pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
             $pdf->writeHTMLCell(106, 74.2, '', $y, '', $border = 0, 0, 1, true, 'J', true);
         }
@@ -175,19 +168,10 @@ if ($result->num_rows > 0) {
             $pdf->Ln(0);
 
         } else {
-            /* $border = array(
-                'B' => array(
-                    'width' => 1, // careful, this is not px but the unit you declared
-                    'dash'  => 10,
-                    'color' => array(0, 0, 0)
-                )
-            ); */
             if ($i > 2) $pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
             $pdf->writeHTMLCell(106, 74.2, '', $y, $html, $border = 0, 0, 1, true, 'J', true);
         }
 
-        //max page
-        
         if ($i == $itemLimit) {
             //max page
             addSpace(8 - $itemLimit, 1);
