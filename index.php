@@ -23,6 +23,8 @@ function saveConfig($a){
 
     $id = (isset($_POST["id"]) ? $_POST["id"] : '');
     $sizeName = (isset($_POST["sizeName"]) ? $_POST["sizeName"] : '');
+    $paperWidth = (isset($_POST["paperWidth"]) ? $_POST["paperWidth"] : 0);
+    $paperHeight = (isset($_POST["paperHeight"]) ? $_POST["paperHeight"] : 0);
     $blockWidth = (isset($_POST["blockWidth"]) ? $_POST["blockWidth"] : 0);
     $blockHeight = (isset($_POST["blockHeight"]) ? $_POST["blockHeight"] : 0);
     $totalX = (isset($_POST["totalX"]) ? $_POST["totalX"] : 0);
@@ -33,16 +35,16 @@ function saveConfig($a){
     $active = (isset($_POST["active"]) ? $_POST["active"] : 0);
     
     if (!$a) {
-        $stmt = $conn->prepare("INSERT INTO papersize (sizeName, blockWidth, blockHeight, totalX, totalY, displayType, fontSize, fontSizeQR) VALUES(?,?,?,?,?,?,?,?)");
-        $stmt->bind_param("ssssssss", $sizeName, $blockWidth, $blockHeight, $totalX, $totalY, $displayType, $fontSize, $fontSizeQR);
+        $stmt = $conn->prepare("INSERT INTO papersize (sizeName, paperWidth, paperHeight, blockWidth, blockHeight, totalX, totalY, displayType, fontSize, fontSizeQR) VALUES(?,?,?,?,?,?,?,?)");
+        $stmt->bind_param("ssssssssss", $sizeName, $paperWidth, $paperHeight, $blockWidth, $blockHeight, $totalX, $totalY, $displayType, $fontSize, $fontSizeQR);
         $stmt->execute();
     } else {
         if ($active == 1){
             $sql = "UPDATE papersize SET active='0'";
             $result = $conn->query($sql);
         }
-        $stmt = $conn->prepare("UPDATE papersize SET sizeName = ?, blockWidth = ?, blockHeight = ?, totalX = ?, totalY = ?, displayType = ?, fontSize = ?, fontSizeQR = ?, active = ? WHERE id = ?");
-        $stmt->bind_param("ssssssssss", $sizeName, $blockWidth, $blockHeight, $totalX, $totalY, $displayType, $fontSize, $fontSizeQR, $active, $a);    
+        $stmt = $conn->prepare("UPDATE papersize SET sizeName = ?, paperWidth = ?, paperHeight = ?, blockWidth = ?, blockHeight = ?, totalX = ?, totalY = ?, displayType = ?, fontSize = ?, fontSizeQR = ?, active = ? WHERE id = ?");
+        $stmt->bind_param("ssssssssssss", $sizeName, $paperWidth, $paperHeight, $blockWidth, $blockHeight, $totalX, $totalY, $displayType, $fontSize, $fontSizeQR, $active, $a);    
         $stmt->execute();
     }
     header("Location: ".$_SERVER['PHP_SELF']);
@@ -66,6 +68,8 @@ if ($result->num_rows > 0) {
                 <tr>
                     <th scope="row" class="text-center">'.$active.'</th>
                     <td>'.$item['sizeName'].'</td>
+                    <td>'.$item['paperWidth'].'</td>
+                    <td>'.$item['paperHeight'].'</td>
                     <td>'.$item['blockWidth'].'</td>
                     <td>'.$item['blockHeight'].'</td>
                     <td>'.$item['totalX'].'</td>
@@ -133,15 +137,8 @@ if ($result->num_rows > 0) {
                         <input class="form-check-input" name="showAddress" type="checkbox" value="1" checked="checked">Show Address
                     </label>
                 </div>
-                <div class="form-group spacer-10">
-                    <select class="form-control form-control-inline" name="itemLimit" id="itemLimit">
-                        <option value="8">8</option>
-                        <option value="6">6</option>
-                        <option value="4">4</option>
-                    </select>
-                    <label for="itemLimit">No. of items per page</label>
-                </div>
 
+                <div class="spacer-20"></div>
                 
                 <Legend>Paper Size Configuration</Legend>
                 <div class="spacer-5">
@@ -151,7 +148,9 @@ if ($result->num_rows > 0) {
                     <thead>
                         <tr>
                         <th scope="col">Selected</th>
-                        <th scope="col">Size Name</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Paper Width</th>
+                        <th scope="col">Paper Height</th>
                         <th scope="col">Block Width</th>
                         <th scope="col">Block Height</th>
                         <th scope="col">Total X</th>
@@ -182,7 +181,7 @@ if ($result->num_rows > 0) {
                 <div class="row">
                     <div class="col-md-12">
                         <div class="form-group">
-                            <label for="sizeName">Size Name</label>
+                            <label for="sizeName">Name</label>
                             <input type="text" required class="form-control" id="sizeName" name="sizeName" aria-describedby="sizeName" placeholder="Enter Size Name">
                             <small id="sizeName" class="form-text text-muted">Any name to describe this configuration</small>
                         </div>
@@ -190,13 +189,13 @@ if ($result->num_rows > 0) {
                 </div>
                 <div class="row">
                     <div class="col-md-6">
+                    <div class="form-group">
+                            <label for="paperWidth">Paper Width</label>
+                            <input type="text" class="form-control" id="paperWidth" name="paperWidth" aria-describedby="paperWidth" placeholder="Enter Paper Width">
+                        </div>
                         <div class="form-group">
                             <label for="blockWidth">Block Width</label>
                             <input type="text" class="form-control" id="blockWidth" name="blockWidth" aria-describedby="blockWidth" placeholder="Enter Block Width">
-                        </div>
-                        <div class="form-group">
-                            <label for="blockHeight">Block Height</label>
-                            <input type="text" class="form-control" id="blockHeight" name="blockHeight" aria-describedby="blockHeight" placeholder="Enter Block Height">
                         </div>
                         <div class="form-group">
                             <label for="totalX">Total X</label>
@@ -204,19 +203,28 @@ if ($result->num_rows > 0) {
                             <small id="totalX" class="form-text text-muted">Number of total blocks per row</small>
                         </div>
                         <div class="form-group">
-                            <label for="totalY">Total Y</label>
-                            <input type="text" class="form-control" id="totalY" name="totalY" aria-describedby="totalY" placeholder="Enter Total Y">
-                            <small id="totalY" class="form-text text-muted">Number of total rows</small>
+                            <label for="fontSize">Font Size</label>
+                            <input type="text" class="form-control" id="fontSize" name="fontSize" aria-describedby="fontSize" placeholder="Enter Font Size">
                         </div>
-                    </div>
-                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="displayType">Display Type</label>
                             <input type="text" class="form-control" id="displayType" name="displayType" aria-describedby="displayType" placeholder="Enter Display Type">
                         </div>
+                    </div>
+                    <div class="col-md-6">
+
                         <div class="form-group">
-                            <label for="fontSize">Font Size</label>
-                            <input type="text" class="form-control" id="fontSize" name="fontSize" aria-describedby="fontSize" placeholder="Enter Font Size">
+                            <label for="paperHeight">Paper Height</label>
+                            <input type="text" class="form-control" id="paperHeight" name="paperHeight" aria-describedby="paperHeight" placeholder="Enter Paper Height">
+                        </div>
+                        <div class="form-group">
+                            <label for="blockHeight">Block Height</label>
+                            <input type="text" class="form-control" id="blockHeight" name="blockHeight" aria-describedby="blockHeight" placeholder="Enter Block Height">
+                        </div>
+                        <div class="form-group">
+                            <label for="totalY">Total Y</label>
+                            <input type="text" class="form-control" id="totalY" name="totalY" aria-describedby="totalY" placeholder="Enter Total Y">
+                            <small id="totalY" class="form-text text-muted">Number of total rows</small>
                         </div>
                         <div class="form-group">
                             <label for="fontSizeQR">Font Size QR</label>
@@ -260,6 +268,8 @@ if ($result->num_rows > 0) {
                     $('#configId').val(id);
                     //sizeName, blockWidth, blockHeight, totalX, totalY, displayType, fontSize, fontSizeQR
                     $('#sizeName').val(a.sizeName);
+                    $('#paperWidth').val(a.paperWidth);
+                    $('#paperHeight').val(a.paperHeight);
                     $('#blockWidth').val(a.blockWidth);
                     $('#blockHeight').val(a.blockHeight);
                     $('#totalX').val(a.totalX);

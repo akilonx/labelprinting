@@ -15,19 +15,32 @@ if ($conn->connect_error) {
 }
 
 
+$sql = "SELECT * FROM papersize where active='1'";
+$result = $conn->query($sql);
+$resultIndex = $result->num_rows;
+
+if ($result->num_rows > 0) {
+    $i = 0; //setting loop index
+    while ($item = $result->fetch_assoc()) {
+        $config = $item;
+    }
+}
+
+
 //defaults
 //$showMerchant = (isset($_POST["showMerchant"]) ? $_POST["showMerchant"] : 0);
 //$showSKU = (isset($_POST["showSKU"]) ? $_POST["showSKU"] : 0);
 $showMobile = (isset($_POST["showMobile"]) ? $_POST["showMobile"] : 0);
 $showAddress = (isset($_POST["showAddress"]) ? $_POST["showAddress"] : 0);
 $showAmount = (isset($_POST["showAmount"]) ? $_POST["showAmount"] : 0);
-$itemLimit = (isset($_POST["itemLimit"]) ? $_POST["itemLimit"] : 8);
 $barcodeType = 'QRCODE';
 $promptPrint = false;
 
 
 // create new PDF document
 $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+
 
 
 // set document information
@@ -68,12 +81,20 @@ $pdf->setFontSubsetting(true);
 $pdf->SetFont('freeserif', '', 9);
 
 //start adding page
-$pdf->AddPage();
+//$pdf->AddPage();
+$width = $pdf->pixelsToUnits($config['paperWidth']); 
+$height = $pdf->pixelsToUnits($config['paperHeight']);
 
+$resolution= array($width, $height);
+$pdf->AddPage('P', $resolution);
+
+$linestyle = array('width' => 0.1, 'cap' => 'butt', 'join' => 'miter', 'dash' => 4, 'color' => array(0, 0, 0));
+$linestyle_grey = array('width' => 0.1, 'cap' => 'butt', 'join' => 'miter', 'dash' => 4, 'color' => array(211,211,211));
 
 function addSpace($a, $pos){
-    global $itemLimit; 
     global $pdf; 
+    global $config;
+    global $linestyle;
 
     $a = ($pos == 1) ? $a : $a + 1;
 
@@ -81,8 +102,8 @@ function addSpace($a, $pos){
 
         $y = $pdf->getY();
 
-        if ($i % 2 == 0) {
-            $pdf->Image('images/dash-black.png', 107, $y-1.5, 106, 3);
+        if ($i % $config['totalX'] == 0) {
+            //$pdf->Image('images/dash-black.png', $config['blockWidth'], $y-1.5, $config['blockWidth'], 3);
             $border = array(
                     'L' => array(
                         'width' => 0.2, // careful, this is not px but the unit you declared
@@ -90,12 +111,13 @@ function addSpace($a, $pos){
                         'color' => array(0, 0, 0)
                     )
                 );
-            $pdf->writeHTMLCell(106, 74.10, '', '', '', $border, 1, 1, true, 'J', true);
+            $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', '', '', $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
 
         } else {
-            $pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
-            $pdf->writeHTMLCell(106, 74.10, '', $y, '', $border = 0, 0, 1, true, 'J', true);
+            //$pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
+            $pdf->Line(1, $y-1.5, 1110, $y-1.5, $linestyle);
+            $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', $y, '', $border = 0, 0, 1, true, 'J', true);
         }
 
     }
@@ -113,8 +135,8 @@ if ($result->num_rows > 0) {
         $i++;
 
         $pdf->SetFillColor(255, 255, 255);
-        $pdf->SetLineStyle(array('width' => 0.1, 'cap' => 'butt', 'join' => 'miter', 'dash' => 4, 'color' => array(0, 0, 0)));
-
+        $pdf->SetLineStyle($linestyle);
+        
         //$address = mb_convert_encoding($address[1],"windows-1251", "windows-1251")
         //$address = split('|', $item['address_with_separator']);
 
@@ -123,13 +145,12 @@ if ($result->num_rows > 0) {
 
     
         $html = '
-        <table width="100%" border="0" cellpadding="5">
+        <table width="100%" border="0" cellpadding="5" style="border-bottom: 1px dashed #B8B8B8">
             <tr>
-                <td align="center" width="75"> 
-                    <div style="height:100px"><br><br><br><br></div>
-                    <div><span style="text-align:center; font-size:30px; font-weight:bold;">&nbsp;&nbsp;'.($item['qrcode2']? "B": "").'</span></div>
+                <td align="center" width="30%"> 
+                    <div><span style="margin-top:10px;text-align:center; font-size:30px; font-weight:bold;">&nbsp;&nbsp;'.($item['qrcode2']? "B": "").'</span></div>
                 </td>
-                <td align="left" width="270">
+                <td align="left" width="70%">
                     <div>
                         <table width="100%" style="padding-top:10px" cellspacing="0" border="0" cellpadding="0">
                             <tr>
@@ -146,17 +167,17 @@ if ($result->num_rows > 0) {
                 </td>
             </tr>
         </table>
-        <img src="images/dash.png">
+        
         ';
 
-        if ($i % 2 == 0) {
-            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, 110.2, $y+6.5, 17, 17);
+        if ($i % $config['totalX'] == 0) {
+           // $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, $config['blockWidth'] + 4, $y+6.5, 17, 17);
         } else {
-            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, 4, $y+6.5, 17, 17);
+           // $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, 4, $y+6.5, 17, 17);
         }
 
-        if ($i % 2 == 0) {
-            if ($i > 2) $pdf->Image('images/dash-black.png', 107, $y-1.5, 106, 3);
+        if ($i % $config['totalX'] == 0) {
+            //if ($i > 2) $pdf->Image('images/dash-black.png', $config['blockWidth'], $y-1.5, $config['blockWidth'], 3);
             $border = array(
                     'L' => array(
                         'width' => 0.2, // careful, this is not px but the unit you declared
@@ -164,24 +185,24 @@ if ($result->num_rows > 0) {
                         'color' => array(0, 0, 0)
                     )
                 );
-            $pdf->writeHTMLCell(106, 74.10, '', '', $html, $border, 1, 1, true, 'J', true);
+            $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', '', $html, $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
 
         } else {
-            if ($i > 2) $pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
-            $pdf->writeHTMLCell(106, 74.10, '', $y, $html, $border = 0, 0, 1, true, 'J', true);
+            if ($i > $config['totalX']) $pdf->Line(1, $y-1.5, 1110, $y-1.5, $linestyle); //$pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
+            $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', $y, $html, $border = 0, 0, 1, true, 'J', true);
         }
 
-        if ($i == $itemLimit) {
+        if ($i == $config['totalY']) {
             //max page
-            addSpace(8 - $itemLimit, 1);
+            //addSpace(8 - $itemLimit, 1);
             $i = 0;
             $pdf->AddPage();
         }
 
         if( --$resultIndex===0 ){
-            $pos = ($i % 2 == 0) ? 1 : 2;
-            addSpace(8 - $i, $pos);
+            $pos = ($i % $config['totalX'] == 0) ? 1 : 2;
+            addSpace($config['totalY'] - $i, $pos);
         }
 
     }
