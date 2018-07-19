@@ -38,10 +38,9 @@ if ($result->num_rows > 0) {
         // prepare and bind
         $stmt = $conn->prepare("UPDATE orders SET address = ? WHERE id = ?");
         $stmt->bind_param("si", $address, $id);
-
-        // set parameters and execute
-        
         $stmt->execute();
+        
+        
 
     }
 
