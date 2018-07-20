@@ -35,8 +35,12 @@ function saveConfig($a){
     $active = (isset($_POST["active"]) ? $_POST["active"] : 0);
     
     if (!$a) {
-        $stmt = $conn->prepare("INSERT INTO papersize (sizeName, paperWidth, paperHeight, blockWidth, blockHeight, totalX, totalY, displayType, fontSize, fontSizeQR) VALUES(?,?,?,?,?,?,?,?)");
-        $stmt->bind_param("ssssssssss", $sizeName, $paperWidth, $paperHeight, $blockWidth, $blockHeight, $totalX, $totalY, $displayType, $fontSize, $fontSizeQR);
+        if ($active == 1){
+            $sql = "UPDATE papersize SET active='0'";
+            $result = $conn->query($sql);
+        }
+        $stmt = $conn->prepare("INSERT INTO papersize (sizeName, paperWidth, paperHeight, blockWidth, blockHeight, totalX, totalY, displayType, fontSize, fontSizeQR, active) VALUES(?,?,?,?,?,?,?,?,?,?,?)");
+        $stmt->bind_param("sssssssssss", $sizeName, $paperWidth, $paperHeight, $blockWidth, $blockHeight, $totalX, $totalY, $displayType, $fontSize, $fontSizeQR, $active);
         $stmt->execute();
     } else {
         if ($active == 1){
@@ -167,7 +171,7 @@ if ($result->num_rows > 0) {
                 </table>
                 
                 <div class="form-group spacer-10">
-                    <button class="btn btn-primary" type="submit" value="Submit">Submit</button>
+                    <button class="btn btn-primary" type="submit" value="Submit">Test Print</button>
                 </div>
 
             </fieldset>
@@ -204,11 +208,11 @@ if ($result->num_rows > 0) {
                         </div>
                         <div class="form-group">
                             <label for="fontSize">Font Size</label>
-                            <input type="text" class="form-control" id="fontSize" name="fontSize" aria-describedby="fontSize" placeholder="Enter Font Size">
+                            <input type="text" class="form-control" id="fontSize" name="fontSize" aria-describedby="fontSize" disabled placeholder="Enter Font Size">
                         </div>
                         <div class="form-group">
                             <label for="displayType">Display Type</label>
-                            <input type="text" class="form-control" id="displayType" name="displayType" aria-describedby="displayType" placeholder="Enter Display Type">
+                            <input type="text" class="form-control" id="displayType" name="displayType" aria-describedby="displayType" disabled placeholder="Enter Display Type">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -228,7 +232,7 @@ if ($result->num_rows > 0) {
                         </div>
                         <div class="form-group">
                             <label for="fontSizeQR">Font Size QR</label>
-                            <input type="text" class="form-control" id="fontSizeQR" name="fontSizeQR" aria-describedby="fontSizeQR" placeholder="Enter Font Size">
+                            <input type="text" class="form-control" id="fontSizeQR" name="fontSizeQR" aria-describedby="fontSizeQR" disabled placeholder="Enter Font Size">
                         </div>
                         <div class="form-group">
                             <label for="fontSizeQR">Active</label>
@@ -244,7 +248,7 @@ if ($result->num_rows > 0) {
                     <div class="col-md-12">
                         <input type="hidden" id="configId" name="id" value=""></input>
                         <div class="form-group spacer-10 text-center">
-                            <button class="btn btn-primary" type="submit" value="Submit">Submit</button>
+                            <button class="btn btn-primary" type="submit" value="Submit">Save</button>
                         </div>
                     </div>
                 </div>

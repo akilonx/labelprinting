@@ -103,54 +103,40 @@ function addSpace($a, $pos){
         $y = $pdf->getY();
 
         if ($i % $config['totalX'] == 0) {
-            //$pdf->Image('images/dash-black.png', $config['blockWidth'], $y-1.5, $config['blockWidth'], 3);
-            $border = array(
-                    'L' => array(
-                        'width' => 0.2, // careful, this is not px but the unit you declared
-                        'dash'  => 5,
-                        'color' => array(0, 0, 0)
-                    )
-                );
+            $border = array('L' => array('width' => 0.2, 'dash'  => 5, 'color' => array(0, 0, 0)));
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', '', '', $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
-
         } else {
-            //$pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
             $pdf->Line(1, $y-1.5, 1110, $y-1.5, $linestyle);
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', $y, '', $border = 0, 0, 1, true, 'J', true);
         }
-
     }
 }
 
 
 //Program start        
-$sql = "SELECT * FROM orders where address is not null and qrcode is not null limit 25";
+$sql = "SELECT * FROM orders where address is not null and qrcode is not null order by id asc limit 25";
 $result = $conn->query($sql);
 $resultIndex = $result->num_rows;
 
 if ($result->num_rows > 0) {
-    $i = 0; //setting loop index
+    $i = 0; 
     while ($item = $result->fetch_assoc()) {
         $i++;
 
         $pdf->SetFillColor(255, 255, 255);
         $pdf->SetLineStyle($linestyle);
         
-        //$address = mb_convert_encoding($address[1],"windows-1251", "windows-1251")
-        //$address = split('|', $item['address_with_separator']);
-
-        
         $y = $pdf->getY();
 
-    
         $html = '
-        <table width="100%" border="0" cellpadding="5" style="border-bottom: 1px dashed #B8B8B8">
+        <table width="100%" border="0" cellpadding="5" style="border-bottom: 1px dashed #888888">
             <tr>
-                <td align="center" width="30%"> 
-                    <div><span style="margin-top:10px;text-align:center; font-size:30px; font-weight:bold;">&nbsp;&nbsp;'.($item['qrcode2']? "B": "").'</span></div>
+                <td align="center" width="20%"> 
+                    <div style="height:100px"><br><br><br><br></div>
+                    <div><span style="text-align:center; font-size:30px; font-weight:bold;">&nbsp;&nbsp;'.($item['qrcode2']? "B": "").'</span></div>
                 </td>
-                <td align="left" width="70%">
+                <td align="left" width="80%">
                     <div>
                         <table width="100%" style="padding-top:10px" cellspacing="0" border="0" cellpadding="0">
                             <tr>
@@ -171,25 +157,18 @@ if ($result->num_rows > 0) {
         ';
 
         if ($i % $config['totalX'] == 0) {
-           // $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, $config['blockWidth'] + 4, $y+6.5, 17, 17);
+            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, $config['blockWidth'] + 4, $y+6.5, 17, 17);
         } else {
-           // $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, 4, $y+6.5, 17, 17);
+            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, 4, $y+6.5, 17, 17);
         }
 
         if ($i % $config['totalX'] == 0) {
-            //if ($i > 2) $pdf->Image('images/dash-black.png', $config['blockWidth'], $y-1.5, $config['blockWidth'], 3);
-            $border = array(
-                    'L' => array(
-                        'width' => 0.2, // careful, this is not px but the unit you declared
-                        'dash'  => 5,
-                        'color' => array(0, 0, 0)
-                    )
-                );
+            $border = array('L' => array('width' => 0.2, 'dash'  => 5,'color' => array(0, 0, 0)));
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', '', $html, $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
 
         } else {
-            if ($i > $config['totalX']) $pdf->Line(1, $y-1.5, 1110, $y-1.5, $linestyle); //$pdf->Image('images/dash-black-scissor.png', 0, $y-1.5, 104, 3);
+            if ($i > $config['totalX']) $pdf->Line(1, $y-1.5, 1110, $y-1.5, $linestyle); 
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', $y, $html, $border = 0, 0, 1, true, 'J', true);
         }
 
@@ -214,19 +193,12 @@ if($promptPrint){
     $pdf->IncludeJS($js);
 }
 
-// Close and output PDF document
-/* 
-if (file_exists('PrintLabel.pdf')) unlink('PrintLabel.pdf');
 $pdf->Output('PrintLabel.pdf', 'I'); 
-*/
-$pdf->Output('PrintLabel.pdf', 'I'); 
-
 /* 
 $base = __DIR__;
 if (file_exists($base.'\files\PrintLabel.pdf')) unlink($base.'\files\PrintLabel.pdf');
 $pdf-> Output($base.'\files\PrintLabel.pdf', 'F'); 
 */
-
 
 $conn->close();
 
