@@ -15,16 +15,7 @@ if ($conn->connect_error) {
 }
 
 
-$sql = "SELECT * FROM papersize where active='1'";
-$result = $conn->query($sql);
-$resultIndex = $result->num_rows;
 
-if ($result->num_rows > 0) {
-    $i = 0; //setting loop index
-    while ($item = $result->fetch_assoc()) {
-        $config = $item;
-    }
-}
 
 
 //defaults
@@ -38,10 +29,24 @@ $promptPrint = false;
 
 
 // create new PDF document
-$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf = new TCPDF(PDF_PAGE_ORIENTATION, 'pt', PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
 
+$sql = "SELECT * FROM papersize where active='1'";
+$result = $conn->query($sql);
+$resultIndex = $result->num_rows;
 
+if ($result->num_rows > 0) {
+    $i = 0; //setting loop index
+    while ($item = $result->fetch_assoc()) {
+        $config = $item;
+        $config['totalBlocks'] = $config['totalY'] * $config['totalX'];
+
+        //$width1 = $pdf->pixelsToUnits($config['paperWidth']); 
+        $config['blockWidth'] = $config['paperWidth'] / $config['totalX'];
+        $config['blockHeight'] = $config['paperHeight'] / $config['totalY'];
+    }
+}
 
 // set document information
 $pdf->SetCreator(PDF_CREATOR);
@@ -82,10 +87,10 @@ $pdf->SetFont('freeserif', '', 9);
 
 //start adding page
 //$pdf->AddPage();
-$width = $pdf->pixelsToUnits($config['paperWidth']); 
-$height = $pdf->pixelsToUnits($config['paperHeight']);
+//$width = $pdf->pixelsToUnits($config['paperWidth']); 
+//$height = $pdf->pixelsToUnits($config['paperHeight']);
 
-$resolution= array($width, $height);
+$resolution= array($config['paperWidth'], $config['paperHeight']);
 $pdf->AddPage('P', $resolution);
 
 $linestyle = array('width' => 0.1, 'cap' => 'butt', 'join' => 'miter', 'dash' => 4, 'color' => array(0, 0, 0));
@@ -103,11 +108,18 @@ function addSpace($a, $pos){
         $y = $pdf->getY();
 
         if ($i % $config['totalX'] == 0) {
-            $border = array('L' => array('width' => 0.2, 'dash'  => 5, 'color' => array(0, 0, 0)));
+            if ($i > 1 && $config['totalX'] == 1) {
+                $pdf->Line(1, $y, 1110, $y, $linestyle); 
+                $pdf->Image('images/scissor.png', 23, $y-5, 17, 10);
+            }
+            $border = ($config['totalX'] > 1) ? array('L' => array('width' => 0.2, 'dash'  => 5, 'color' => array(0, 0, 0))) : 0;
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', '', '', $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
         } else {
-            $pdf->Line(1, $y-1.5, 1110, $y-1.5, $linestyle);
+            if ($i > $config['totalX']) {
+                $pdf->Line(1, $y, 1110, $y, $linestyle); 
+                $pdf->Image('images/scissor.png', 23, $y-5, 17, 10);
+            }
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', $y, '', $border = 0, 0, 1, true, 'J', true);
         }
     }
@@ -133,7 +145,7 @@ if ($result->num_rows > 0) {
         <table width="100%" border="0" cellpadding="5" style="border-bottom: 1px dashed #888888">
             <tr>
                 <td align="center" width="20%"> 
-                    <div style="height:100px"><br><br><br><br></div>
+                    <div><br><br><br><br></div>
                     <div><span style="text-align:center; font-size:30px; font-weight:bold;">&nbsp;&nbsp;'.($item['qrcode2']? "B": "").'</span></div>
                 </td>
                 <td align="left" width="80%">
@@ -156,32 +168,39 @@ if ($result->num_rows > 0) {
         
         ';
 
-        if ($i % $config['totalX'] == 0) {
-            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, $config['blockWidth'] + 4, $y+6.5, 17, 17);
+        if ($i % $config['totalX'] == 0 && $config['totalX'] > 1) {
+            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, $config['blockWidth'] + 10, $y+19, 50, 50);
         } else {
-            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, 4, $y+6.5, 17, 17);
+            $pdf->write2DBarcode(($item['qrcode2'] ? $item['qrcode2'] : $item['qrcode']), $barcodeType, 10, $y+19, 50, 50);
         }
 
         if ($i % $config['totalX'] == 0) {
-            $border = array('L' => array('width' => 0.2, 'dash'  => 5,'color' => array(0, 0, 0)));
+            if ($i > 1 && $config['totalX'] == 1) {
+                $pdf->Line(1, $y, 1110, $y, $linestyle); 
+                $pdf->Image('images/scissor.png', 23, $y-5, 17, 10);
+            }
+            $border = ($config['totalX'] > 1) ? array('L' => array('width' => 0.2, 'dash'  => 5, 'color' => array(0, 0, 0))) : 0;
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', '', $html, $border, 1, 1, true, 'J', true);
             $pdf->Ln(0);
 
         } else {
-            if ($i > $config['totalX']) $pdf->Line(1, $y-1.5, 1110, $y-1.5, $linestyle); 
+            if ($i > $config['totalX']) {
+                $pdf->Line(1, $y, 1110, $y, $linestyle); 
+                $pdf->Image('images/scissor.png', 23, $y-5, 17, 10);
+            }
             $pdf->writeHTMLCell($config['blockWidth'], $config['blockHeight'], '', $y, $html, $border = 0, 0, 1, true, 'J', true);
         }
 
-        if ($i == $config['totalY']) {
+        if ($i == $config['totalBlocks']) {
             //max page
             //addSpace(8 - $itemLimit, 1);
             $i = 0;
             $pdf->AddPage();
         }
 
-        if( --$resultIndex===0 ){
+        if(--$resultIndex === 0){
             $pos = ($i % $config['totalX'] == 0) ? 1 : 2;
-            addSpace($config['totalY'] - $i, $pos);
+            addSpace($config['totalBlocks'] - $i, $pos);
         }
 
     }
